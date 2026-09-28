@@ -1,0 +1,38 @@
+services:
+  api:
+    build: .
+    env_file: .env
+    environment:
+      SERVICE: api
+      PORT: 8000
+    ports: ["8000:8000"]
+    extra_hosts: ["host.docker.internal:host-gateway"]  # host par chal raha Ollama use karne ke liye
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  ui:
+    build: .
+    environment:
+      SERVICE: ui
+      PORT: 8501
+      API_URL: http://api:8000
+    ports: ["8501:8501"]
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Optional local LLM: `docker compose --profile ollama up`
+  # phir .env mein LLM_PROVIDER=ollama, OLLAMA_BASE_URL=http://ollama:11434
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama"]
+    ports: ["11434:11434"]
+    volumes: ["ollama:/root/.ollama"]
+
+volumes:
+  ollama:

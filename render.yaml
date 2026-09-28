@@ -1,0 +1,39 @@
+# Render Blueprint: dono services ek repo se. Secrets Render dashboard mein daalo (sync: false).
+services:
+  - type: web
+    name: research-api
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: SERVICE
+        value: api
+      - key: LLM_PROVIDER
+        value: openai
+      - key: LLM_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SEARCH_PROVIDER
+        value: tavily
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: LANGFUSE_PUBLIC_KEY
+        sync: false
+      - key: LANGFUSE_SECRET_KEY
+        sync: false
+      - key: LANGFUSE_HOST
+        value: https://cloud.langfuse.com
+
+  - type: web
+    name: research-ui
+    runtime: docker
+    plan: starter
+    envVars:
+      - key: SERVICE
+        value: ui
+      - key: API_URL
+        fromService:
+          type: web
+          name: research-api
+          property: hostport  # private network, e.g. research-api:10000
